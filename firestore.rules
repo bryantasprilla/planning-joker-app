@@ -1,0 +1,102 @@
+rules_version = '2';
+
+// One document per table. Everything lives on that document so the TTL policy on
+// `expiresAt` removes a whole session in one delete (TTL does not cascade to subcollections).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /sessions/{sessionId} {
+
+      function signedIn() {
+        return request.auth != null;
+      }
+
+      function me() {
+        return request.auth.uid;
+      }
+
+      function isOpen() {
+        return resource.data.expiresAt > request.time;
+      }
+
+      function isDealer() {
+        return resource.data.dealerId == me();
+      }
+
+      function validName(name) {
+        return name is string && name.size() >= 1 && name.size() <= 40;
+      }
+
+      function validLabel(label) {
+        return label is string && label.size() <= 200;
+      }
+
+      function validCard(value) {
+        return value in ['0', '1', '2', '3', '5', '8', '13', '21'];
+      }
+
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      // Joining or renaming: only your own roster entry changes.
+      function selfRosterWrite() {
+        let before = resource.data.participants;
+        let after = request.resource.data.participants;
+        let diff = after.diff(before);
+        return diff.affectedKeys().hasOnly([me()])
+          && diff.removedKeys().size() == 0
+          && after[me()].keys().hasOnly(['name', 'joinedAt'])
+          && validName(after[me()].name);
+      }
+
+      // Playing, changing or pulling back your own card while the round is open.
+      function selfVoteWrite() {
+        let before = resource.data.currentRound;
+        let after = request.resource.data.currentRound;
+        return before.status == 'voting'
+          && me() in resource.data.participants
+          && after.diff(before).affectedKeys().hasOnly(['votes'])
+          && after.votes.diff(before.votes).affectedKeys().hasOnly([me()])
+          && (!(me() in after.votes) || validCard(after.votes[me()]));
+      }
+
+      // The dealer runs the round: reveal, re-vote, next round, ticket label.
+      function dealerWrite() {
+        let round = request.resource.data.currentRound;
+        return round.keys().hasOnly(['round', 'ticketLabel', 'status', 'votes'])
+          && round.status in ['voting', 'revealed']
+          && validLabel(round.ticketLabel)
+          && round.round is int;
+      }
+
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+             'sessionId', 'dealerId', 'createdAt', 'expiresAt',
+             'participants', 'currentRound', 'roundHistory'])
+        && request.resource.data.sessionId == sessionId
+        && request.resource.data.dealerId == me()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt <= request.time + duration.value(25, 'h')
+        && request.resource.data.participants.keys().hasOnly([me()])
+        && validName(request.resource.data.participants[me()].name)
+        && request.resource.data.currentRound.status == 'voting'
+        && request.resource.data.currentRound.votes.size() == 0
+        && validLabel(request.resource.data.currentRound.ticketLabel)
+        && request.resource.data.roundHistory.size() == 0;
+
+      allow update: if signedIn()
+        && isOpen()
+        && changedKeys().hasOnly(['participants', 'currentRound', 'roundHistory'])
+        && (
+          (changedKeys().hasOnly(['participants']) && selfRosterWrite())
+          || (changedKeys().hasOnly(['currentRound']) && selfVoteWrite())
+          || (isDealer() && dealerWrite())
+        );
+
+      allow delete: if false;
+    }
+  }
+}
