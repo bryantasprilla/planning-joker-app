@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { SiteFooter } from './components/SiteFooter';
 import { useAnonymousUser } from './hooks';
 import { Home } from './routes/Home';
 import { Table } from './routes/Table';
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/table/:sessionId" element={<Table auth={auth} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SiteFooter />
     </BrowserRouter>
   );
 }
