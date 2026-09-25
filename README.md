@@ -46,7 +46,9 @@ Open http://localhost:5173, deal a table, and open the invite link in a private 
    npx firebase login
    npx firebase deploy --only firestore:rules --project <your-project-id>
    ```
-6. Add the TTL policy: **Firestore → Time-to-live (TTL) → Create policy**, collection group `sessions`, timestamp field `expiresAt`. Firestore deletes expired tables in the background, usually within 24 hours of expiry. If the console won't offer TTL on your plan, you can skip it: the app and rules already treat tables older than 24h as closed, and leftover documents are tiny.
+6. No auto-delete policy: Firestore's TTL requires billing to be enabled, which this project deliberately avoids. The app and rules already treat tables older than 24h as closed, and a finished table is a few KB against the free 1 GiB. If billing is ever enabled, add a TTL policy on collection group `sessions`, field `expiresAt`.
+
+The live project is `planning-joker-app` (see `.firebaserc`), so the deploy command above can drop `--project`.
 
 ## Deploy (GitHub Pages + Cloudflare, free)
 
