@@ -4,7 +4,7 @@ Planning poker for backlog refinement. The dealer deals a table and shares the l
 
 - No accounts. People type a name once; the browser remembers it.
 - Tables are temporary and clear out about a day after they're dealt.
-- Static site (Vite + React + TypeScript) talking straight to Firestore on Firebase's free Spark plan. There's no server to run.
+- Static site (Vite + React + TypeScript) hosted on GitHub Pages, with a custom domain through Cloudflare DNS. Live table data lives in Firestore on Firebase's free Spark plan. There's no server to run.
 
 ## How it's built
 
@@ -48,12 +48,20 @@ Open http://localhost:5173, deal a table, and open the invite link in a private 
    ```
 6. Add the TTL policy: **Firestore → Time-to-live (TTL) → Create policy**, collection group `sessions`, timestamp field `expiresAt`. Firestore deletes expired tables in the background, usually within 24 hours of expiry. If the console won't offer TTL on your plan, you can skip it: the app and rules already treat tables older than 24h as closed, and leftover documents are tiny.
 
-## Deploy (Vercel, free)
+## Deploy (GitHub Pages + Cloudflare, free)
 
-1. Push this repo to GitHub and import it at https://vercel.com/new (framework preset: Vite).
-2. Add the four `VITE_FIREBASE_*` variables from `.env.local` under **Settings → Environment Variables**.
-3. Deploy. `vercel.json` rewrites every path to `index.html` so `/table/<id>` links work on refresh.
-4. In Firebase, add your Vercel domain under **Authentication → Settings → Authorized domains**.
+`.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every push to `main`. It's switched off until the repo has its own domain: a Pages site on this account would otherwise appear at `bryantasprilla.com/planning-joker`, which belongs to a different site.
+
+1. **Repo variables** (**Settings → Secrets and variables → Actions → Variables**): add the four `VITE_FIREBASE_*` values from `.env.local`. They're public by design, so variables are fine; no secrets needed.
+2. **Cloudflare DNS** for the new domain, same as the portfolio:
+   - Apex (`example.com`): four `A` records to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+   - `www`: `CNAME` to `bryantasprilla.github.io`.
+   - Set them to **DNS only** (grey cloud) until GitHub has issued the HTTPS certificate; you can turn the proxy on afterwards with SSL/TLS mode **Full**.
+3. **Settings → Pages**: source **GitHub Actions**, then enter the new domain under **Custom domain** and tick **Enforce HTTPS** once it's available.
+4. Add the repo variable `PAGES_LIVE` = `true`, then run the workflow (**Actions → Deploy to GitHub Pages → Run workflow**) or push to `main`.
+5. In Firebase, add the domain under **Authentication → Settings → Authorized domains**.
+
+The build copies `index.html` to `404.html`, which is how `/table/<id>` links keep working on refresh with Pages' static hosting.
 
 ## Teams later
 
