@@ -112,11 +112,6 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
               <span className="sr-only">, change your name</span>
             </button>
           )}
-          {isDealer && (
-            <button type="button" className="btn btn-ghost" onClick={() => setDealerOptionsOpen(true)}>
-              Dealer options
-            </button>
-          )}
           <ShareButton url={inviteUrl} />
         </div>
       </header>
@@ -135,6 +130,7 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
         round={currentRound}
         isDealer={isDealer}
         onSave={(label) => run(() => setTicketLabel(sessionId, label))}
+        onDealerOptions={() => setDealerOptionsOpen(true)}
       />
 
       <Felt

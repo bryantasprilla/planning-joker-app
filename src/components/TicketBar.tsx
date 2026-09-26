@@ -5,9 +5,10 @@ interface Props {
   round: Round;
   isDealer: boolean;
   onSave: (label: string) => Promise<void>;
+  onDealerOptions: () => void;
 }
 
-export function TicketBar({ round, isDealer, onSave }: Props) {
+export function TicketBar({ round, isDealer, onSave, onDealerOptions }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(round.ticketLabel);
 
@@ -53,9 +54,14 @@ export function TicketBar({ round, isDealer, onSave }: Props) {
         )}
       </div>
       {isDealer && !editing && (
-        <button type="button" className="btn btn-ghost" onClick={startEditing}>
-          {round.ticketLabel ? 'Edit ticket' : 'Add ticket'}
-        </button>
+        <div className="row">
+          <button type="button" className="btn btn-ghost" onClick={startEditing}>
+            {round.ticketLabel ? 'Edit ticket' : 'Add ticket'}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onDealerOptions}>
+            Dealer options
+          </button>
+        </div>
       )}
     </section>
   );
