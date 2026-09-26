@@ -15,7 +15,7 @@ service cloud.firestore {
       }
 
       function isOpen() {
-        return resource.data.expiresAt > request.time;
+        return resource.data.expiresAt > request.time && resource.data.get('closed', false) == false;
       }
 
       function isDealer() {
@@ -87,13 +87,23 @@ service cloud.firestore {
         && validLabel(request.resource.data.currentRound.ticketLabel)
         && request.resource.data.roundHistory.size() == 0;
 
+      // The dealer hands the button to someone already seated.
+      function passButton() {
+        return changedKeys().hasOnly(['dealerId'])
+          && request.resource.data.dealerId in resource.data.participants;
+      }
+
+      function closeTable() {
+        return changedKeys().hasOnly(['closed']) && request.resource.data.closed == true;
+      }
+
       allow update: if signedIn()
         && isOpen()
-        && changedKeys().hasOnly(['participants', 'currentRound', 'roundHistory'])
         && (
           (changedKeys().hasOnly(['participants']) && selfRosterWrite())
           || (changedKeys().hasOnly(['currentRound']) && selfVoteWrite())
-          || (isDealer() && dealerWrite())
+          || (isDealer() && changedKeys().hasOnly(['participants', 'currentRound', 'roundHistory']) && dealerWrite())
+          || (isDealer() && (passButton() || closeTable()))
         );
 
       allow delete: if false;

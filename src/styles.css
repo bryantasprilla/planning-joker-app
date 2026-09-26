@@ -934,6 +934,58 @@ code,
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
+.dialog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.player-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 6px;
+  overflow-wrap: anywhere;
+}
+
+.btn-sm {
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 8px;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--surface);
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+.btn-danger-ghost:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
 /* ---------- Home ---------- */
 .home {
   display: grid;

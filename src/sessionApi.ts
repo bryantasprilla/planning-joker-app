@@ -76,6 +76,14 @@ export function revealCards(sessionId: string) {
   return updateDoc(sessionRef(sessionId), { 'currentRound.status': 'revealed' });
 }
 
+export function passDealerButton(sessionId: string, newDealerId: string) {
+  return updateDoc(sessionRef(sessionId), { dealerId: newDealerId });
+}
+
+export function closeTable(sessionId: string) {
+  return updateDoc(sessionRef(sessionId), { closed: true });
+}
+
 export function revote(session: Session) {
   const { round, ticketLabel } = session.currentRound;
   return updateDoc(sessionRef(session.sessionId), { currentRound: freshRound(round, ticketLabel) });

@@ -29,4 +29,5 @@ export interface Session {
   participants: Record<string, Participant>;
   currentRound: Round;
   roundHistory: PastRound[];
+  closed?: boolean;
 }

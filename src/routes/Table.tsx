@@ -7,9 +7,12 @@ import { NameDialog } from '../components/NameDialog';
 import { ShareButton } from '../components/ShareButton';
 import { TicketBar } from '../components/TicketBar';
 import { useSession, type AuthState } from '../hooks';
+import { DealerOptions } from '../components/DealerOptions';
 import {
+  closeTable,
   joinSession,
   nextRound,
+  passDealerButton,
   playCard,
   renameSelf,
   revealCards,
@@ -26,7 +29,9 @@ export function Table({ auth }: { auth: AuthState }) {
   if (auth.status === 'error') return <Notice title="Can’t reach the table" body={auth.message} />;
   if (state.status === 'error') return <Notice title="Can’t reach the table" body={state.message} />;
   if (state.status === 'closed') {
-    return (
+    return state.byDealer ? (
+      <Notice title="The dealer closed this table" body="Thanks for playing. Deal a new table to keep estimating." />
+    ) : (
       <Notice
         title="This table has closed"
         body="Tables clear out 24 hours after they’re dealt, or the link may be mistyped. Deal a new one to keep going."
@@ -53,6 +58,7 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
   const [cachedName] = useState(getCachedName);
   const [autoJoinFailed, setAutoJoinFailed] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const [dealerOptionsOpen, setDealerOptionsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const autoJoinTried = useRef(false);
@@ -106,6 +112,11 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
               <span className="sr-only">, change your name</span>
             </button>
           )}
+          {isDealer && (
+            <button type="button" className="btn btn-ghost" onClick={() => setDealerOptionsOpen(true)}>
+              Dealer options
+            </button>
+          )}
           <ShareButton url={inviteUrl} />
         </div>
       </header>
@@ -152,6 +163,19 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
           submitLabel="Sit down"
           initialName={cachedName}
           onSubmit={join}
+        />
+      )}
+
+      {isDealer && dealerOptionsOpen && (
+        <DealerOptions
+          session={session}
+          myUid={uid}
+          onPass={async (newDealerId) => {
+            await run(() => passDealerButton(sessionId, newDealerId));
+            setDealerOptionsOpen(false);
+          }}
+          onCloseTable={() => run(() => closeTable(sessionId))}
+          onDismiss={() => setDealerOptionsOpen(false)}
         />
       )}
 

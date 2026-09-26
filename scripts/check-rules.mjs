@@ -115,6 +115,16 @@ await expect('dealer deals the next round', true, () =>
   }),
 );
 await expect('alice plays in round 2', true, () => updateDoc(ref(alice), { [`currentRound.votes.${alice.uid}`]: '3' }));
+await expect('alice passes the dealer button', false, () => updateDoc(ref(alice), { dealerId: alice.uid }));
+await expect('dealer passes the button to someone not seated', false, () => updateDoc(ref(dealer), { dealerId: eve.uid }));
+await expect('dealer passes the button to alice', true, () => updateDoc(ref(dealer), { dealerId: alice.uid }));
+await expect('old dealer tries to reveal', false, () => updateDoc(ref(dealer), { 'currentRound.status': 'revealed' }));
+await expect('new dealer alice reveals', true, () => updateDoc(ref(alice), { 'currentRound.status': 'revealed' }));
+await expect('bob closes the table', false, () => updateDoc(ref(bob), { closed: true }));
+await expect('alice (dealer) closes the table', true, () => updateDoc(ref(alice), { closed: true }));
+await expect('alice reopens the table', false, () => updateDoc(ref(alice), { closed: false }));
+await expect('bob renames himself after close', false, () => updateDoc(ref(bob), { [`participants.${bob.uid}.name`]: 'B' }));
+
 await expect('alice deletes the table', false, () => deleteDoc(ref(alice)));
 await expect('dealer deletes the table', false, () => deleteDoc(ref(dealer)));
 

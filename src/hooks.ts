@@ -28,7 +28,7 @@ export function useAnonymousUser(): AuthState {
 
 export type SessionState =
   | { status: 'loading' }
-  | { status: 'closed' }
+  | { status: 'closed'; byDealer: boolean }
   | { status: 'ready'; session: Session }
   | { status: 'error'; message: string };
 
@@ -42,8 +42,8 @@ export function useSession(sessionId: string, enabled: boolean): SessionState {
       doc(db, 'sessions', sessionId),
       (snap) => {
         const session = snap.data() as Session | undefined;
-        if (!session || session.expiresAt.toMillis() < Date.now()) {
-          setState({ status: 'closed' });
+        if (!session || session.closed || session.expiresAt.toMillis() < Date.now()) {
+          setState({ status: 'closed', byDealer: Boolean(session?.closed) });
         } else {
           setState({ status: 'ready', session });
         }
