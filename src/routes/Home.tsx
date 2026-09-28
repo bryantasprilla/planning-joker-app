@@ -4,6 +4,7 @@ import { DisplaySettingsButton } from '../components/DisplaySettings';
 import { PlayingCard } from '../components/PlayingCard';
 import type { AuthState } from '../hooks';
 import { createSession } from '../sessionApi';
+import { tablePath } from '../sessionId';
 import { getCachedName, setCachedName } from '../storage';
 import { ofAKind } from '../votes';
 
@@ -25,7 +26,7 @@ export function Home({ auth }: { auth: AuthState }) {
     try {
       setCachedName(name);
       const sessionId = await createSession(name, ticket);
-      navigate(`/table/${sessionId}`);
+      navigate(tablePath(sessionId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Couldn’t deal a table. Try again.');
       setBusy(false);

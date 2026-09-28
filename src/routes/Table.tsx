@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Felt } from '../components/Felt';
 import { Hand } from '../components/Hand';
 import { History } from '../components/History';
@@ -20,11 +20,11 @@ import {
   revote,
   setTicketLabel,
 } from '../sessionApi';
+import { tablePath } from '../sessionId';
 import { getCachedName, setCachedName } from '../storage';
 import type { Session } from '../types';
 
-export function Table({ auth }: { auth: AuthState }) {
-  const { sessionId = '' } = useParams();
+export function Table({ auth, sessionId }: { auth: AuthState; sessionId: string }) {
   // Table codes are lowercase words and digits; anything else (e.g. an encoded "/") isn't a table.
   const validCode = /^[a-z0-9-]{1,80}$/.test(sessionId);
   const state = useSession(sessionId, auth.status === 'ready' && validCode);
@@ -104,7 +104,7 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
     setRenaming(false);
   }
 
-  const inviteUrl = `${window.location.origin}/table/${sessionId}`;
+  const inviteUrl = `${window.location.origin}${tablePath(sessionId)}`;
 
   return (
     <main className="app">

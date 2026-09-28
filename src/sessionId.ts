@@ -15,6 +15,9 @@ function pick<T>(items: T[], random: number): T {
   return items[random % items.length];
 }
 
+// Tables live at "/?table=<id>" so static hosting serves the page with a 200, not a 404 fallback.
+export const tablePath = (sessionId: string) => `/?table=${encodeURIComponent(sessionId)}`;
+
 export function newSessionId(): string {
   const r = crypto.getRandomValues(new Uint32Array(6));
   const suffix = Array.from(r.slice(2), (n) => pick([...SUFFIX_ALPHABET], n)).join('');

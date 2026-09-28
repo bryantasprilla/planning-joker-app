@@ -63,7 +63,7 @@ The live project is `planning-joker-app` (see `.firebaserc`), so the deploy comm
 4. Add the repo variable `PAGES_LIVE` = `true`, then run the workflow (**Actions → Deploy to GitHub Pages → Run workflow**) or push to `main`.
 5. In Firebase, add the domain under **Authentication → Settings → Authorized domains**.
 
-The build copies `index.html` to `404.html`, which is how `/table/<id>` links keep working on refresh with Pages' static hosting.
+Tables live at `/?table=<id>`, which Pages serves as `index.html` with a normal 200, so link previews (Teams, Slack) treat invites as real pages. The build also copies `index.html` to `404.html` so older `/table/<id>` links still load and redirect to the new form.
 
 ## Teams later
 

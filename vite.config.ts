@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     {
-      // GitHub Pages serves 404.html for unknown paths; making it the app lets /table/<id> links survive a refresh.
+      // GitHub Pages serves 404.html for unknown paths; making it the app lets old /table/<id> links redirect.
       name: 'spa-404-fallback',
       apply: 'build',
       closeBundle() {
