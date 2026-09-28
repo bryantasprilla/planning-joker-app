@@ -45,8 +45,14 @@ service cloud.firestore {
         let diff = after.diff(before);
         return diff.affectedKeys().hasOnly([me()])
           && diff.removedKeys().size() == 0
-          && after[me()].keys().hasOnly(['name', 'joinedAt'])
-          && validName(after[me()].name);
+          && validSeat(after[me()]);
+      }
+
+      // Every seat is rendered for every player, so a malformed one would break the table for all.
+      function validSeat(seat) {
+        return seat.keys().hasOnly(['name', 'joinedAt'])
+          && validName(seat.name)
+          && seat.joinedAt is timestamp;
       }
 
       // Playing, changing or pulling back your own card while the round is open.
@@ -61,12 +67,14 @@ service cloud.firestore {
       }
 
       // The dealer runs the round: reveal, re-vote, next round, ticket label.
+      // Votes can only be kept as they are or cleared, never written on someone's behalf.
       function dealerWrite() {
         let round = request.resource.data.currentRound;
         return round.keys().hasOnly(['round', 'ticketLabel', 'status', 'votes'])
           && round.status in ['voting', 'revealed']
           && validLabel(round.ticketLabel)
-          && round.round is int;
+          && round.round is int
+          && (round.votes == resource.data.currentRound.votes || round.votes.size() == 0);
       }
 
       allow read: if signedIn();
@@ -81,7 +89,7 @@ service cloud.firestore {
         && request.resource.data.expiresAt is timestamp
         && request.resource.data.expiresAt <= request.time + duration.value(25, 'h')
         && request.resource.data.participants.keys().hasOnly([me()])
-        && validName(request.resource.data.participants[me()].name)
+        && validSeat(request.resource.data.participants[me()])
         && request.resource.data.currentRound.status == 'voting'
         && request.resource.data.currentRound.votes.size() == 0
         && validLabel(request.resource.data.currentRound.ticketLabel)
@@ -102,7 +110,7 @@ service cloud.firestore {
         && (
           (changedKeys().hasOnly(['participants']) && selfRosterWrite())
           || (changedKeys().hasOnly(['currentRound']) && selfVoteWrite())
-          || (isDealer() && changedKeys().hasOnly(['participants', 'currentRound', 'roundHistory']) && dealerWrite())
+          || (isDealer() && changedKeys().hasOnly(['currentRound', 'roundHistory']) && dealerWrite())
           || (isDealer() && (passButton() || closeTable()))
         );
 

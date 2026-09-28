@@ -115,6 +115,30 @@ await expect('dealer deals the next round', true, () =>
   }),
 );
 await expect('alice plays in round 2', true, () => updateDoc(ref(alice), { [`currentRound.votes.${alice.uid}`]: '3' }));
+await expect('bob rejoins with a text join time', false, () =>
+  updateDoc(ref(bob), { [`participants.${bob.uid}`]: { name: 'Bob', joinedAt: 'yesterday' } }),
+);
+await expect('bob adds an extra field to his seat', false, () =>
+  updateDoc(ref(bob), { [`participants.${bob.uid}.isAdmin`]: true }),
+);
+await expect('bob uses a name that is not text', false, () =>
+  updateDoc(ref(bob), { [`participants.${bob.uid}.name`]: 42 }),
+);
+await expect('bob uses a 41-character name', false, () =>
+  updateDoc(ref(bob), { [`participants.${bob.uid}.name`]: 'x'.repeat(41) }),
+);
+await expect('script and SQL text are stored as a plain name', true, () =>
+  updateDoc(ref(bob), { [`participants.${bob.uid}.name`]: "<b>x</b>'; DROP TABLE--" }),
+);
+await expect('dealer renames bob', false, () => updateDoc(ref(dealer), { [`participants.${bob.uid}.name`]: 'Nope' }));
+await expect('dealer plays a card for bob', false, () => updateDoc(ref(dealer), { [`currentRound.votes.${bob.uid}`]: '21' }));
+await expect('dealer uses a 201-character ticket', false, () =>
+  updateDoc(ref(dealer), { 'currentRound.ticketLabel': 'x'.repeat(201) }),
+);
+await expect('dealer uses a ticket that is not text', false, () =>
+  updateDoc(ref(dealer), { 'currentRound.ticketLabel': { html: '<script>' } }),
+);
+
 await expect('alice passes the dealer button', false, () => updateDoc(ref(alice), { dealerId: alice.uid }));
 await expect('dealer passes the button to someone not seated', false, () => updateDoc(ref(dealer), { dealerId: eve.uid }));
 await expect('dealer passes the button to alice', true, () => updateDoc(ref(dealer), { dealerId: alice.uid }));
