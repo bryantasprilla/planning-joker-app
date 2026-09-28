@@ -22,7 +22,10 @@
   --card-ink: #1b1d22;
   --card-edge: #d9d4c7;
   --suit-red: #c4303a;
-  --card-back: #5b5fc7;
+  --card-back-default: #5b5fc7;
+  --card-back-magenta: #b0317a;
+  --card-back-olive: #6f7d2c;
+  --card-back: var(--card-back-default);
 
   --accent: #5b5fc7;
   --accent-hover: #4b4fb3;
@@ -55,7 +58,9 @@
     --rail-hi: #553827;
     --card-face: #f6f2e8;
     --card-edge: #bdb6a5;
-    --card-back: #6a6ed8;
+    --card-back-default: #6a6ed8;
+    --card-back-magenta: #c2408c;
+    --card-back-olive: #7f8e34;
     --accent: #8f93ec;
     --accent-hover: #a5a8f1;
     --accent-ink: #121433;
@@ -83,7 +88,9 @@
   --rail-hi: #553827;
   --card-face: #f6f2e8;
   --card-edge: #bdb6a5;
-  --card-back: #6a6ed8;
+  --card-back-default: #6a6ed8;
+  --card-back-magenta: #c2408c;
+  --card-back-olive: #7f8e34;
   --accent: #8f93ec;
   --accent-hover: #a5a8f1;
   --accent-ink: #121433;
@@ -93,6 +100,14 @@
   --danger: #f08a96;
   --danger-soft: #3a1c22;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-cards='magenta'] {
+  --card-back: var(--card-back-magenta);
+}
+
+:root[data-cards='olive'] {
+  --card-back: var(--card-back-olive);
 }
 
 /* ---------- Base ---------- */
@@ -751,6 +766,26 @@ code,
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
+/* Illustrated backs are drawn at 5:7; "cover" trims a sliver off the sides instead of leaving bands. */
+:root[data-cards='olive'] .pcard-back,
+.card-swatch.card-swatch--olive,
+:root[data-cards='magenta'] .pcard-back,
+.card-swatch.card-swatch--magenta {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+:root[data-cards='olive'] .pcard-back,
+.card-swatch.card-swatch--olive {
+  background-image: url('./assets/olive-back.svg');
+}
+
+:root[data-cards='magenta'] .pcard-back,
+.card-swatch.card-swatch--magenta {
+  background-image: url('./assets/magenta-back.svg');
+}
+
 .pcard-value {
   font-family: 'IBM Plex Mono', monospace;
   font-weight: 700;
@@ -846,7 +881,7 @@ code,
 }
 
 .hand-card[aria-pressed='true'] .pcard-front {
-  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 3px var(--card-back), 0 10px 20px rgba(0, 0, 0, 0.25);
 }
 
 .hand-card:focus-visible {
@@ -958,6 +993,98 @@ code,
   gap: 12px;
   padding-block: 6px;
   overflow-wrap: anywhere;
+}
+
+/* Radios stay in the DOM for keyboard and screen readers; the span is what you see. */
+.segment input,
+.card-theme-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 3px;
+  gap: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.segment span {
+  display: block;
+  text-align: center;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 6px;
+  border-radius: 7px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.segment input:checked + span {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.segment input:focus-visible + span,
+.card-theme-option:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card-theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.card-theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.card-theme-option:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.card-swatch {
+  width: 34px;
+  aspect-ratio: 5 / 7;
+  border-radius: 5px;
+  border: 3px solid var(--card-face);
+  box-shadow: 0 0 0 1px var(--card-edge), 0 2px 5px rgba(0, 0, 0, 0.2);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 6px);
+}
+
+.card-swatch--default {
+  background-color: var(--card-back-default);
+}
+
+.card-swatch--magenta {
+  background-color: var(--card-back-magenta);
+}
+
+.card-swatch--olive {
+  background-color: var(--card-back-olive);
 }
 
 .btn-sm {

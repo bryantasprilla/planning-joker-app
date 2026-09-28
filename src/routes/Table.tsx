@@ -8,6 +8,7 @@ import { ShareButton } from '../components/ShareButton';
 import { TicketBar } from '../components/TicketBar';
 import { useSession, type AuthState } from '../hooks';
 import { DealerOptions } from '../components/DealerOptions';
+import { DisplaySettingsButton } from '../components/DisplaySettings';
 import {
   closeTable,
   joinSession,
@@ -24,8 +25,18 @@ import type { Session } from '../types';
 
 export function Table({ auth }: { auth: AuthState }) {
   const { sessionId = '' } = useParams();
-  const state = useSession(sessionId, auth.status === 'ready');
+  // Table codes are lowercase words and digits; anything else (e.g. an encoded "/") isn't a table.
+  const validCode = /^[a-z0-9-]{1,80}$/.test(sessionId);
+  const state = useSession(sessionId, auth.status === 'ready' && validCode);
 
+  if (!validCode) {
+    return (
+      <Notice
+        title="This table has closed"
+        body="Tables clear out 24 hours after they’re dealt, or the link may be mistyped. Deal a new one to keep going."
+      />
+    );
+  }
   if (auth.status === 'error') return <Notice title="Can’t reach the table" body={auth.message} />;
   if (state.status === 'error') return <Notice title="Can’t reach the table" body={state.message} />;
   if (state.status === 'closed') {
@@ -112,6 +123,7 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
               <span className="sr-only">, change your name</span>
             </button>
           )}
+          <DisplaySettingsButton />
           <ShareButton url={inviteUrl} />
         </div>
       </header>

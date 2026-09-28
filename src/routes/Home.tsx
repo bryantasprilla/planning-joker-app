@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DisplaySettingsButton } from '../components/DisplaySettings';
 import { PlayingCard } from '../components/PlayingCard';
 import type { AuthState } from '../hooks';
 import { createSession } from '../sessionApi';
@@ -38,6 +39,7 @@ export function Home({ auth }: { auth: AuthState }) {
           <span className="brand-mark" aria-hidden="true" />
           Planning Joker
         </span>
+        <DisplaySettingsButton />
       </header>
 
       <div className="home">
