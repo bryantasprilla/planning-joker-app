@@ -26,7 +26,7 @@ export function Hand({ myVote, revealed, busy, onPlay }: Props) {
               ? 'You’ve folded this round. Tap the chip, or any card, to come back in.'
               : myVote
                 ? 'Locked in. Tap another card to change it, or the same one to pull it back.'
-                : 'Tap a card to lock it in. Nobody sees it until the reveal.'}
+                : 'Tap a card to lock it in, or fold if this ticket isn’t yours. Nobody sees your card until the reveal.'}
         </p>
       </div>
       <div className="hand-body">
@@ -56,7 +56,6 @@ export function Hand({ myVote, revealed, busy, onPlay }: Props) {
               : 'Not your ticket? Fold to pass on this round. Your seat stays, and you won’t count toward the estimate.'}
           </span>
         </span>
-        <span className="hand-divider" aria-hidden="true" />
         <div className={`hand-cards${folded ? ' is-folded' : ''}`}>
           {DECK.map((value, i) => {
             const picked = myVote === value;

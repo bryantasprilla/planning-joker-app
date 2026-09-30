@@ -5,7 +5,7 @@ export function History({ rounds }: { rounds: PastRound[] }) {
   if (rounds.length === 0) return null;
 
   return (
-    <section className="panel" aria-labelledby="history-title">
+    <section className="panel history-panel" aria-labelledby="history-title">
       <h2 id="history-title" className="eyebrow">
         Earlier rounds
       </h2>

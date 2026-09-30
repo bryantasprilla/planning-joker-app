@@ -107,7 +107,7 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
   const inviteUrl = `${window.location.origin}${tablePath(sessionId)}`;
 
   return (
-    <main className="app">
+    <main className="app table-page">
       <header className="topbar">
         <Link to="/" className="brand">
           <span className="brand-mark" aria-hidden="true" />

@@ -516,6 +516,16 @@ code,
   font-size: 14px;
 }
 
+/* The play area (ticket, table, hand, history) shares one centered column so it doesn't sprawl on wide screens. */
+.ticket,
+.table-page .table-rail,
+.hand,
+.history-panel {
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
 /* ---------- Ticket ---------- */
 .ticket {
   display: flex;
@@ -921,22 +931,19 @@ code,
   opacity: 0.45;
 }
 
+/* Chip and cards travel together as one centered group. */
 .hand-body {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
 }
 
 .hand-body .hand-cards {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
-}
-
-.hand-divider {
-  width: 1px;
-  align-self: stretch;
-  margin-top: 16px;
-  background: var(--border);
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
 }
 
 .fold-wrap {
@@ -1026,8 +1033,15 @@ button.fold-chip:focus-visible {
   border-top-color: var(--ink);
 }
 
-.fold-wrap:hover .fold-tip,
-.fold-wrap:focus-within .fold-tip {
+/* Only real hover or keyboard focus: a tap or click focuses the chip too, and the tip shouldn't stick. */
+@media (hover: hover) {
+  .fold-wrap:hover .fold-tip {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fold-wrap:has(.fold-chip:focus-visible) .fold-tip {
   opacity: 1;
   transform: none;
 }
@@ -1392,8 +1406,22 @@ button.fold-chip:focus-visible {
     gap: 10px;
   }
 
+  .hand-body .hand-cards {
+    flex: 1 1 auto;
+    padding-left: 10px;
+    gap: 10px 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-items: center;
+    container-type: inline-size;
+  }
+
+  /* Four cards per row, sized to whatever width is left beside the chip. */
+  .hand-body .hand-cards .pcard--sm {
+    --w: min(52px, calc((100cqw - 24px) / 4));
+  }
+
   .fold-chip {
-    --size: 50px;
+    --size: 48px;
   }
 
   .fold-tip {
