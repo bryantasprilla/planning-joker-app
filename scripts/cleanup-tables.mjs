@@ -7,7 +7,8 @@ const GRACE_MS = 24 * 60 * 60 * 1000;
 const BATCH = 300;
 
 const emulator = process.env.FIRESTORE_EMULATOR_HOST;
-const key = emulator ? null : JSON.parse(process.env.FIREBASE_CLEANUP_KEY ?? 'null');
+// Strip a leading byte-order mark: secrets pasted from some shells (e.g. PowerShell) carry one.
+const key = emulator ? null : JSON.parse((process.env.FIREBASE_CLEANUP_KEY ?? 'null').replace(/^﻿/, ''));
 if (!emulator && !key) throw new Error('Set FIREBASE_CLEANUP_KEY (service account JSON) or FIRESTORE_EMULATOR_HOST.');
 
 const projectId = emulator ? 'demo-planning-joker' : key.project_id;
