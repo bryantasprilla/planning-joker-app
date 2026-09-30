@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DisplaySettingsButton } from '../components/DisplaySettings';
 import { PlayingCard } from '../components/PlayingCard';
-import type { AuthState } from '../hooks';
+import { ReelCounter } from '../components/ReelCounter';
+import { useHandsDealt, type AuthState } from '../hooks';
 import { createSession } from '../sessionApi';
 import { tablePath } from '../sessionId';
 import { getCachedName, setCachedName } from '../storage';
@@ -17,6 +18,7 @@ export function Home({ auth }: { auth: AuthState }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const ready = auth.status === 'ready';
+  const handsDealt = useHandsDealt();
 
   async function deal(e: FormEvent) {
     e.preventDefault();
@@ -51,6 +53,9 @@ export function Home({ auth }: { auth: AuthState }) {
               Planning poker for backlog refinement. No accounts and no setup: deal a table, send the link, and estimate
               each ticket in rounds.
             </p>
+            {handsDealt !== null && (
+              <ReelCounter value={handsDealt} label={handsDealt === 1 ? 'Hand dealt' : 'Hands dealt'} />
+            )}
           </div>
 
           <form className="panel stack" onSubmit={deal}>

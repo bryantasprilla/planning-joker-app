@@ -77,7 +77,10 @@ service cloud.firestore {
           && (round.votes == resource.data.currentRound.votes || round.votes.size() == 0);
       }
 
-      allow read: if signedIn();
+      // Open a table by its code (the invite link), but never list or query tables:
+      // that would hand anyone every table's names, tickets and votes.
+      allow get: if signedIn();
+      allow list: if false;
 
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly([
@@ -113,6 +116,34 @@ service cloud.firestore {
           || (isDealer() && changedKeys().hasOnly(['currentRound', 'roundHistory']) && dealerWrite())
           || (isDealer() && (passButton() || closeTable()))
         );
+
+      allow delete: if false;
+    }
+
+    // Where hands are played (country / region / city). Written only by the Cloudflare Worker's
+    // service account, which bypasses these rules; no visitor can read or write them.
+    match /hands/{hand} {
+      allow read, write: if false;
+    }
+
+    // Site-wide "hands dealt" counter. It can only go up by one, in the same batch as a
+    // real reveal by that table's dealer, so it can't be pumped without playing hands.
+    match /stats/global {
+      function isRevealBy(sessionId) {
+        let before = get(/databases/$(database)/documents/sessions/$(sessionId)).data;
+        let after = getAfter(/databases/$(database)/documents/sessions/$(sessionId)).data;
+        return before.dealerId == request.auth.uid
+          && before.currentRound.status == 'voting'
+          && after.currentRound.status == 'revealed';
+      }
+
+      allow read: if true;
+
+      allow create, update: if request.auth != null
+        && request.resource.data.keys().hasOnly(['handsDealt', 'lastSession'])
+        && request.resource.data.lastSession is string
+        && request.resource.data.handsDealt == (resource == null ? 0 : resource.data.handsDealt) + 1
+        && isRevealBy(request.resource.data.lastSession);
 
       allow delete: if false;
     }

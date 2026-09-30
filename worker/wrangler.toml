@@ -1,0 +1,8 @@
+name = "planning-joker-hands"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = false
+
+routes = [{ pattern = "api.planningjoker.com", custom_domain = true }]
+
+# Secret (set with `npx wrangler secret put GCP_KEY`): service-account JSON with Firestore access only.

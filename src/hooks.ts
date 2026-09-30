@@ -2,6 +2,7 @@ import { onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { auth, db } from './firebase';
+import { statsRef } from './sessionApi';
 import type { Session } from './types';
 
 export type AuthState = { status: 'loading' } | { status: 'ready'; user: User } | { status: 'error'; message: string };
@@ -24,6 +25,21 @@ export function useAnonymousUser(): AuthState {
   }, []);
 
   return state;
+}
+
+// Null until loaded (or if it can't be read), so the landing page never flashes a misleading 000.
+export function useHandsDealt(): number | null {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    return onSnapshot(
+      statsRef(),
+      (snap) => setCount(snap.data()?.handsDealt ?? 0),
+      () => setCount(null),
+    );
+  }, []);
+
+  return count;
 }
 
 export type SessionState =

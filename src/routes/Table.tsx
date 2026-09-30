@@ -150,7 +150,7 @@ function TableReady({ session, uid }: { session: Session; uid: string }) {
         myUid={uid}
         isDealer={isDealer}
         busy={busy}
-        onReveal={() => run(() => revealCards(sessionId))}
+        onReveal={() => run(() => revealCards(sessionId, currentRound.round))}
         onRevote={() => run(() => revote(session))}
         onNextRound={(label) => run(() => nextRound(session, label))}
       />

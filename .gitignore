@@ -3,6 +3,9 @@ dist
 *.tsbuildinfo
 .env
 .env.local
+.env.*.local
+.wrangler
+.dev.vars
 .firebase
 firebase-debug.log
 firestore-debug.log

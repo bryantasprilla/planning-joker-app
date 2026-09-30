@@ -4,11 +4,19 @@ import { connectAuthEmulator, getAuth, signInAnonymously } from 'firebase/auth';
 import {
   Timestamp,
   arrayUnion,
+  collection,
   connectFirestoreEmulator,
   deleteDoc,
   deleteField,
   doc,
+  getDoc,
+  getDocs,
   getFirestore,
+  increment,
+  limit,
+  query,
+  where,
+  writeBatch,
   serverTimestamp,
   setDoc,
   terminate,
@@ -106,7 +114,21 @@ await expect('alice extends the table’s life', false, () =>
   updateDoc(ref(alice), { expiresAt: Timestamp.fromMillis(Date.now() + 99 * 24 * 3600 * 1000) }),
 );
 await expect('dealer renames the ticket', true, () => updateDoc(ref(dealer), { 'currentRound.ticketLabel': 'PROJ-1 CSV' }));
-await expect('dealer reveals', true, () => updateDoc(ref(dealer), { 'currentRound.status': 'revealed' }));
+const statsDoc = (p) => doc(p.db, 'stats', 'global');
+const bump = (p, by = 1) => setDoc(statsDoc(p), { handsDealt: increment(by), lastSession: id }, { merge: true });
+const revealAndBump = (p, by = 1) => {
+  const batch = writeBatch(p.db);
+  batch.update(ref(p), { 'currentRound.status': 'revealed' });
+  batch.set(statsDoc(p), { handsDealt: increment(by), lastSession: id }, { merge: true });
+  return batch.commit();
+};
+await expect('anyone can read the hands-dealt counter', true, () => getDoc(statsDoc(eve)));
+await expect('alice bumps the counter without a reveal', false, () => bump(alice));
+await expect('dealer bumps the counter without revealing', false, () => bump(dealer));
+await expect('alice reveals and bumps the counter', false, () => revealAndBump(alice));
+await expect('dealer reveals and bumps the counter by 2', false, () => revealAndBump(dealer, 2));
+await expect('dealer reveals and bumps the counter by 1', true, () => revealAndBump(dealer));
+await expect('dealer bumps again for the already revealed table', false, () => bump(dealer));
 await expect('alice changes her card after the reveal', false, () =>
   updateDoc(ref(alice), { [`currentRound.votes.${alice.uid}`]: '3' }),
 );
@@ -150,6 +172,14 @@ await expect('bob closes the table', false, () => updateDoc(ref(bob), { closed: 
 await expect('alice (dealer) closes the table', true, () => updateDoc(ref(alice), { closed: true }));
 await expect('alice reopens the table', false, () => updateDoc(ref(alice), { closed: false }));
 await expect('bob renames himself after close', false, () => updateDoc(ref(bob), { [`participants.${bob.uid}.name`]: 'B' }));
+
+await expect('eve reads hand locations', false, () => getDocs(collection(eve.db, 'hands')));
+await expect('dealer writes a hand location', false, () => setDoc(doc(dealer.db, 'hands', 'x'), { country: 'US' }));
+await expect('eve opens a table by its code', true, () => getDoc(ref(eve)));
+await expect('eve lists every table', false, () => getDocs(collection(eve.db, 'sessions')));
+await expect('eve queries tables by player name', false, () =>
+  getDocs(query(collection(eve.db, 'sessions'), where('dealerId', '==', dealer.uid), limit(5))),
+);
 
 await expect('alice deletes the table', false, () => deleteDoc(ref(alice)));
 await expect('dealer deletes the table', false, () => deleteDoc(ref(dealer)));
