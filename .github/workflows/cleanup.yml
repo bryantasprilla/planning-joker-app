@@ -1,0 +1,21 @@
+name: Clean up expired tables
+
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/cleanup-tables.mjs
+        env:
+          FIREBASE_CLEANUP_KEY: ${{ secrets.FIREBASE_CLEANUP_KEY }}
