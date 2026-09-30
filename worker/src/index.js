@@ -58,7 +58,8 @@ async function sha256(text) {
 
 async function firestoreClient(env) {
   const emulator = env.FIRESTORE_EMULATOR_HOST;
-  const key = emulator ? null : JSON.parse(env.GCP_KEY);
+  // A leading byte-order mark can sneak in when the secret is piped from PowerShell.
+  const key = emulator ? null : JSON.parse(env.GCP_KEY.replace(/^﻿/, ''));
   const project = emulator ? 'demo-planning-joker' : key.project_id;
   const root = `${emulator ? `http://${emulator}` : 'https://firestore.googleapis.com'}/v1/projects/${project}/databases/(default)/documents`;
   const token = emulator ? 'owner' : await accessToken(key);
