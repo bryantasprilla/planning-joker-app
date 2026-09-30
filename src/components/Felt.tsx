@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { Session } from '../types';
-import { computeStats, formatPoints, isConsensus, ofAKind } from '../votes';
+import { FOLD, type Session } from '../types';
+import { computeStats, formatPoints, isCard, isConsensus, ofAKind } from '../votes';
 import { PlayingCard } from './PlayingCard';
 
 interface Props {
@@ -24,8 +24,14 @@ export function Felt({ session, myUid, isDealer, busy, onReveal, onRevote, onNex
   const seats = Object.entries(participants).sort(
     ([, a], [, b]) => (a.joinedAt?.toMillis() ?? Infinity) - (b.joinedAt?.toMillis() ?? Infinity),
   );
-  const lockedCount = seats.filter(([uid]) => votes[uid] !== undefined).length;
-  const everyoneIn = lockedCount === seats.length;
+  const foldedCount = seats.filter(([uid]) => votes[uid] === FOLD).length;
+  const lockedCount = seats.filter(([uid]) => votes[uid] !== undefined && votes[uid] !== FOLD).length;
+  const playing = seats.length - foldedCount;
+  const everyoneFolded = playing === 0;
+  const everyoneIn = playing > 0 && lockedCount === playing;
+  const statusLine = everyoneFolded
+    ? 'Everyone folded'
+    : `${everyoneIn ? 'Everyone’s locked in' : `${lockedCount} of ${playing} locked in`}${foldedCount ? ` · ${foldedCount} folded` : ''}`;
 
   return (
     <section className="table-rail" aria-label="Poker table">
@@ -33,16 +39,29 @@ export function Felt({ session, myUid, isDealer, busy, onReveal, onRevote, onNex
         <ul className="seats">
           {seats.map(([uid, p], i) => {
             const vote = votes[uid];
-            const face = vote === undefined ? 'empty' : revealed ? 'up' : 'down';
-            const status = revealed ? (vote === undefined ? 'Sat out' : '') : vote === undefined ? 'Thinking…' : 'Locked in';
+            const card = vote !== undefined && isCard(vote) ? vote : undefined;
+            const folded = vote === FOLD;
+            const face = card === undefined ? 'empty' : revealed ? 'up' : 'down';
+            const status = folded
+              ? 'Folded'
+              : revealed
+                ? card === undefined
+                  ? 'Sat out'
+                  : ''
+                : card === undefined
+                  ? 'Thinking…'
+                  : 'Locked in';
             return (
-              <li key={uid} className={`seat${uid === myUid ? ' is-me' : ''}`}>
-                <PlayingCard
-                  face={face}
-                  value={revealed ? vote : undefined}
-                  suit={i}
-                  gold={consensus && vote !== undefined}
-                />
+              <li key={uid} className={`seat${uid === myUid ? ' is-me' : ''}${folded ? ' is-folded' : ''}`}>
+                {folded ? (
+                  <span className="fold-slot">
+                    <span className="fold-chip on-table" aria-hidden="true">
+                      FOLD
+                    </span>
+                  </span>
+                ) : (
+                  <PlayingCard face={face} value={revealed ? card : undefined} suit={i} gold={consensus && card !== undefined} />
+                )}
                 <span className="seat-name">
                   {uid === dealerId && (
                     <span className="dealer-puck" title="Dealer">
@@ -57,7 +76,7 @@ export function Felt({ session, myUid, isDealer, busy, onReveal, onRevote, onNex
                 {status && (
                   <span className={`seat-status${status === 'Locked in' ? ' is-locked' : ''}`}>{status}</span>
                 )}
-                {revealed && vote !== undefined && <span className="sr-only">played {vote}</span>}
+                {revealed && card !== undefined && <span className="sr-only">played {card}</span>}
               </li>
             );
           })}
@@ -67,10 +86,10 @@ export function Felt({ session, myUid, isDealer, busy, onReveal, onRevote, onNex
           {!revealed ? (
             <>
               <p className="felt-status">
-                {everyoneIn ? 'Everyone’s locked in' : `${lockedCount} of ${seats.length} locked in`}
+                {statusLine}
               </p>
               {isDealer ? (
-                <button type="button" className="btn btn-chip" disabled={busy || lockedCount === 0} onClick={onReveal}>
+                <button type="button" className="btn btn-chip" disabled={busy || (lockedCount === 0 && !everyoneFolded)} onClick={onReveal}>
                   Reveal cards
                 </button>
               ) : (

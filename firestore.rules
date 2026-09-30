@@ -31,7 +31,7 @@ service cloud.firestore {
       }
 
       function validCard(value) {
-        return value in ['0', '1', '2', '3', '5', '8', '13', '21'];
+        return value in ['0', '1', '2', '3', '5', '8', '13', '21', 'fold'];
       }
 
       function changedKeys() {

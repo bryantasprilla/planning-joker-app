@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { newSessionId } from './sessionId';
-import type { CardValue, PastRound, Round, Session } from './types';
+import type { PastRound, Round, Session, Vote } from './types';
 import { isConsensus } from './votes';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -62,7 +62,7 @@ export function renameSelf(sessionId: string, name: string) {
   return updateDoc(sessionRef(sessionId), { [`participants.${myUid()}.name`]: name.trim() });
 }
 
-export function playCard(sessionId: string, value: CardValue | null) {
+export function playCard(sessionId: string, value: Vote | null) {
   return updateDoc(sessionRef(sessionId), {
     [`currentRound.votes.${myUid()}`]: value ?? deleteField(),
   });

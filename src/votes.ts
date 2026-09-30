@@ -1,10 +1,13 @@
-import type { CardValue } from './types';
+import { FOLD, type CardValue, type Vote } from './types';
 
 export const DECK: CardValue[] = ['0', '1', '2', '3', '5', '8', '13', '21'];
 
-// A lone card agrees with nobody, so consensus needs at least two matching cards.
-export function isConsensus(values: CardValue[]): boolean {
-  return values.length >= 2 && values.every((v) => v === values[0]);
+export const isCard = (v: Vote): v is CardValue => v !== FOLD;
+
+// A lone card agrees with nobody, so consensus needs at least two matching cards. Folds don't count.
+export function isConsensus(votes: Vote[]): boolean {
+  const cards = votes.filter(isCard);
+  return cards.length >= 2 && cards.every((v) => v === cards[0]);
 }
 
 const COUNT_WORDS = ['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
@@ -21,8 +24,8 @@ export interface RoundStats {
   max: number;
 }
 
-export function computeStats(values: CardValue[]): RoundStats | null {
-  const nums = values.map(Number).sort((a, b) => a - b);
+export function computeStats(votes: Vote[]): RoundStats | null {
+  const nums = votes.filter(isCard).map(Number).sort((a, b) => a - b);
   if (nums.length === 0) return null;
   const mid = Math.floor(nums.length / 2);
   return {

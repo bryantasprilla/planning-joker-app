@@ -96,6 +96,8 @@ for (const retired of ['34', '?', '☕']) {
     updateDoc(ref(bob), { [`currentRound.votes.${bob.uid}`]: retired }),
   );
 }
+await expect('alice folds for bob', false, () => updateDoc(ref(alice), { [`currentRound.votes.${bob.uid}`]: 'fold' }));
+await expect('bob folds', true, () => updateDoc(ref(bob), { [`currentRound.votes.${bob.uid}`]: 'fold' }));
 await expect('bob pulls his card back', true, () => updateDoc(ref(bob), { [`currentRound.votes.${bob.uid}`]: deleteField() }));
 
 await expect('alice reveals', false, () => updateDoc(ref(alice), { 'currentRound.status': 'revealed' }));
