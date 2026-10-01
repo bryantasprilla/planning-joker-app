@@ -29,6 +29,20 @@ export function Table({ auth, sessionId }: { auth: AuthState; sessionId: string 
   const validCode = /^[a-z0-9-]{1,80}$/.test(sessionId);
   const state = useSession(sessionId, auth.status === 'ready' && validCode);
 
+  // Tables hold people's names and tickets: keep them out of search results even if an invite link is posted publicly.
+  useEffect(() => {
+    const robots = document.createElement('meta');
+    robots.name = 'robots';
+    robots.content = 'noindex, nofollow';
+    document.head.append(robots);
+    const previousTitle = document.title;
+    document.title = `${sessionId} · Planning Joker`;
+    return () => {
+      robots.remove();
+      document.title = previousTitle;
+    };
+  }, [sessionId]);
+
   if (!validCode) {
     return (
       <Notice
