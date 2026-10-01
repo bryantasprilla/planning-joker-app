@@ -1410,6 +1410,11 @@ button.fold-chip:focus-visible {
   margin-bottom: 14px;
 }
 
+.footer-links {
+  display: flex;
+  gap: 18px;
+}
+
 .site-footer a {
   color: var(--ink-dim);
   font-weight: 500;

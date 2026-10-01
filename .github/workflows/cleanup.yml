@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   cleanup:
@@ -19,3 +20,8 @@ jobs:
       - run: node scripts/cleanup-tables.mjs
         env:
           FIREBASE_CLEANUP_KEY: ${{ secrets.FIREBASE_CLEANUP_KEY }}
+      # GitHub switches off scheduled workflows after 60 days without commits; re-enabling resets that clock.
+      - name: Keep this schedule alive
+        run: gh api --method PUT "repos/${{ github.repository }}/actions/workflows/cleanup.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
